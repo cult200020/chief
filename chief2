@@ -1,0 +1,86 @@
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then 
+        Library:Notify("Character not found or invalid", 3)
+        return 
+    end
+
+    local overlay = Instance.new("ScreenGui")
+    overlay.Name = "MoneyOverlay"
+    overlay.IgnoreGuiInset = true
+    overlay.ResetOnSpawn = false
+    overlay.Parent = game:GetService("CoreGui")
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(1, 0, 1, 0)
+    mainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+    mainFrame.BackgroundTransparency = 1
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = overlay
+
+    for i = 1, 20 do
+        mainFrame.BackgroundTransparency = 1 - (i / 20)
+        task.wait(0.02)
+    end
+
+    local statusText = Instance.new("TextLabel")
+    statusText.Size = UDim2.new(0.4, 0, 0.06, 0)
+    statusText.Position = UDim2.new(0.3, 0, 0.47, 0)
+    statusText.Text = "💸 INFINITE MONEY ACTIVATED 💸"
+    statusText.TextScaled = true
+    statusText.BackgroundTransparency = 1
+    statusText.TextColor3 = Color3.fromRGB(255, 215, 0) 
+    statusText.Font = Enum.Font.GothamBold
+    statusText.Parent = mainFrame
+
+    -- Animate status text
+    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+    local tween = game:GetService("TweenService"):Create(statusText, tweenInfo, {
+        TextTransparency = 0.3
+    })
+    tween:Play()
+
+    local originalCF = character:GetPivot()
+    getgenv().SwimMethod = true
+    task.wait(1)
+    character:PivotTo(CFrame.new(-68, 287, -321))
+
+    for _, v in pairs(game.Workspace:GetDescendants()) do
+        if v:IsA("ProximityPrompt") then
+            v.HoldDuration = 0
+            v.RequiresLineOfSight = false
+        end
+    end
+
+    local prompt = workspace:FindFirstChild("IceFruit Sell") and workspace["IceFruit Sell"]:FindFirstChildOfClass("ProximityPrompt")
+    if prompt then
+        for i = 1, 1000 do
+            for j = 1, 50 do
+                fireproximityprompt(prompt, 1, true)
+            end
+            task.wait(0.01)
+        end
+        print("Fired proximity prompt in timed batches.")
+    else
+        warn("IceFruit Sell ProximityPrompt not found!")
+    end
+
+    task.wait(2)
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = false
+        end
+    end
+
+    for i = 1, 20 do
+        mainFrame.BackgroundTransparency = i / 20
+        task.wait(0.02)
+    end
+    overlay:Destroy()
+
+    task.wait(1)
+    getgenv().SwimMethod = true
+    character:PivotTo(originalCF)
+    task.wait(1)
+    getgenv().SwimMethod = false
+    return
