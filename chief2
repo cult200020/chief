@@ -13,7 +13,7 @@ overlay.Parent = game:GetService("CoreGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(1, 0, 1, 0)
-mainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+mainFrame.BackgroundColor3 = Color3.new(0.380392, 0.031373, 0.031373)
 mainFrame.BackgroundTransparency = 1
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = overlay
@@ -26,10 +26,10 @@ end
 local statusText = Instance.new("TextLabel")
 statusText.Size = UDim2.new(0.4, 0, 0.06, 0)
 statusText.Position = UDim2.new(0.3, 0, 0.47, 0)
-statusText.Text = "💸 INFINITE MONEY ACTIVATED 💸"
+statusText.Text = "💰 INFINITE MONEY ACTIVATED 💰"
 statusText.TextScaled = true
 statusText.BackgroundTransparency = 1
-statusText.TextColor3 = Color3.fromRGB(255, 215, 0) 
+statusText.TextColor3 = Color3.new(0.000000, 0.000000, 0.000000) 
 statusText.Font = Enum.Font.GothamBold
 statusText.Parent = mainFrame
 
