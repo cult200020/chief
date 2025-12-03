@@ -13,7 +13,7 @@ overlay.Parent = game:GetService("CoreGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(1, 0, 1, 0)
-mainFrame.BackgroundColor3 = Color3.new(0.380392, 0.031373, 0.031373)
+mainFrame.BackgroundColor3 = Color3.new(0.239216, 0.011765, 0.011765)
 mainFrame.BackgroundTransparency = 1
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = overlay
@@ -29,7 +29,7 @@ statusText.Position = UDim2.new(0.3, 0, 0.47, 0)
 statusText.Text = "💰 INFINITE MONEY ACTIVATED 💰"
 statusText.TextScaled = true
 statusText.BackgroundTransparency = 1
-statusText.TextColor3 = Color3.new(0.000000, 0.000000, 0.000000) 
+statusText.TextColor3 = Color3.new(0, 0, 0)
 statusText.Font = Enum.Font.GothamBold
 statusText.Parent = mainFrame
 
@@ -57,20 +57,11 @@ end
 
 local prompt = workspace:FindFirstChild("IceFruit Sell") and workspace["IceFruit Sell"]:FindFirstChildOfClass("ProximityPrompt")
 if prompt then
-    for i = 1, 300 do
-        fireproximityprompt(prompt, 1, true)
+    for i = 1, 1000 do
+        for j = 1, 50 do
+            fireproximityprompt(prompt, 1, true)
+        end
         task.wait(0.01)
-    end
-    print("Fired proximity prompt in timed batches.")
-else
-    warn("IceFruit Sell ProximityPrompt not found!")
-end
-
--- Restore original prompt settings so no instant prompts remain
-for prompt, settings in pairs(promptSettings) do
-    if prompt and prompt.Parent then
-        prompt.HoldDuration = settings.HoldDuration
-        prompt.RequiresLineOfSight = settings.RequiresLineOfSight
     end
 end
 
@@ -81,14 +72,32 @@ for _, part in pairs(character:GetDescendants()) do
     end
 end
 
+-- Move character back to original position
+character:PivotTo(originalCF)
+getgenv().SwimMethod = true
+task.wait(1)
+getgenv().SwimMethod = false
+
+-- Wait until the character is back at original location
+while (character:GetPivot().Position - originalCF.Position).Magnitude > 1 do
+    task.wait(0.1)
+end
+
+-- Stop the text tween
+tween:Cancel()
+
+-- Fade out overlay and text together
 for i = 1, 20 do
     mainFrame.BackgroundTransparency = i / 20
+    statusText.TextTransparency = i / 20
     task.wait(0.02)
 end
 overlay:Destroy()
 
-task.wait(1)
-getgenv().SwimMethod = true
-character:PivotTo(originalCF)
-task.wait(1)
-getgenv().SwimMethod = false
+-- Restore original prompt settings so nothing stays instant
+for prompt, settings in pairs(promptSettings) do
+    if prompt and prompt.Parent then
+        prompt.HoldDuration = settings.HoldDuration
+        prompt.RequiresLineOfSight = settings.RequiresLineOfSight
+    end
+end
