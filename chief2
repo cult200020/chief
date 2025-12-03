@@ -13,7 +13,7 @@ overlay.Parent = game:GetService("CoreGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(1, 0, 1, 0)
-mainFrame.BackgroundColor3 = Color3.new(0.286275, 0.011765, 0.011765)
+mainFrame.BackgroundColor3 = Color3.new(0.239216, 0.011765, 0.011765)
 mainFrame.BackgroundTransparency = 1
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = overlay
@@ -58,16 +58,10 @@ end
 local prompt = workspace:FindFirstChild("IceFruit Sell") and workspace["IceFruit Sell"]:FindFirstChildOfClass("ProximityPrompt")
 if prompt then
     for i = 1, 1000 do
-        fireproximityprompt(prompt, 1, true)
+        for j = 1, 50 do
+            fireproximityprompt(prompt, 1, true)
+        end
         task.wait(0.01)
-    end
-end
-
--- Restore original prompt settings
-for prompt, settings in pairs(promptSettings) do
-    if prompt and prompt.Parent then
-        prompt.HoldDuration = settings.HoldDuration
-        prompt.RequiresLineOfSight = settings.RequiresLineOfSight
     end
 end
 
@@ -84,7 +78,12 @@ getgenv().SwimMethod = true
 task.wait(1)
 getgenv().SwimMethod = false
 
--- Stop the tween so text fades with the overlay
+-- Wait until the character is back at original location
+while (character:GetPivot().Position - originalCF.Position).Magnitude > 1 do
+    task.wait(0.1)
+end
+
+-- Stop the text tween
 tween:Cancel()
 
 -- Fade out overlay and text together
@@ -93,5 +92,12 @@ for i = 1, 20 do
     statusText.TextTransparency = i / 20
     task.wait(0.02)
 end
-
 overlay:Destroy()
+
+-- Restore original prompt settings so nothing stays instant
+for prompt, settings in pairs(promptSettings) do
+    if prompt and prompt.Parent then
+        prompt.HoldDuration = settings.HoldDuration
+        prompt.RequiresLineOfSight = settings.RequiresLineOfSight
+    end
+end
