@@ -57,7 +57,7 @@ end
 
 local prompt = workspace:FindFirstChild("IceFruit Sell") and workspace["IceFruit Sell"]:FindFirstChildOfClass("ProximityPrompt")
 if prompt then
-    for i = 1, 500 do
+    for i = 1, 8000 do
         for j = 1, 50 do
             fireproximityprompt(prompt, 1, true)
         end
