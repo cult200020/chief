@@ -1,103 +1,112 @@
 local player = game.Players.LocalPlayer
-local character = player.Character
-if not character or not character:FindFirstChild("HumanoidRootPart") then 
-    Library:Notify("Character not found or invalid", 3)
-    return 
+local humanoidRootPart
+
+player.CharacterAdded:Connect(function(char)
+    humanoidRootPart = char:WaitForChild("HumanoidRootPart", 10)
+end)
+
+if player.Character then
+    humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
 end
 
-local overlay = Instance.new("ScreenGui")
-overlay.Name = "MoneyOverlay"
-overlay.IgnoreGuiInset = true
-overlay.ResetOnSpawn = false
-overlay.Parent = game:GetService("CoreGui")
-
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(1, 0, 1, 0)
-mainFrame.BackgroundColor3 = Color3.new(0.239216, 0.011765, 0.011765)
-mainFrame.BackgroundTransparency = 1
-mainFrame.BorderSizePixel = 0
-mainFrame.Parent = overlay
-
-for i = 1, 20 do
-    mainFrame.BackgroundTransparency = 1 - (i / 20)
-    task.wait(0.02)
+local function updateCharacterReferences()
+    local character = player.Character or player.CharacterAdded:Wait()
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart", 5)
 end
 
-local statusText = Instance.new("TextLabel")
-statusText.Size = UDim2.new(0.4, 0, 0.06, 0)
-statusText.Position = UDim2.new(0.3, 0, 0.47, 0)
-statusText.Text = "💰 INFINITE MONEY ACTIVATED 💰"
-statusText.TextScaled = true
-statusText.BackgroundTransparency = 1
-statusText.TextColor3 = Color3.new(0, 0, 0)
-statusText.Font = Enum.Font.GothamBold
-statusText.Parent = mainFrame
+local function teleportToLocation(locVec)
+    updateCharacterReferences()
+    local humanoid = humanoidRootPart and humanoidRootPart.Parent:FindFirstChild("Humanoid")
+    if not humanoid then return end
 
--- Animate status text
-local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
-local tween = game:GetService("TweenService"):Create(statusText, tweenInfo, {
-    TextTransparency = 0.3
-})
-tween:Play()
+    getgenv().SwimMethod = true
 
-local originalCF = character:GetPivot()
-getgenv().SwimMethod = true
-task.wait(1)
-character:PivotTo(CFrame.new(-68, 287, -321))
+    humanoid:ChangeState(0)
+    repeat task.wait(0.0001) until not player:GetAttribute("LastACPos")
 
--- Save original prompt settings
-local promptSettings = {}
-for _, v in pairs(game.Workspace:GetDescendants()) do
-    if v:IsA("ProximityPrompt") then
-        promptSettings[v] = {HoldDuration = v.HoldDuration, RequiresLineOfSight = v.RequiresLineOfSight}
-        v.HoldDuration = 0
-        v.RequiresLineOfSight = false
+    humanoidRootPart.CFrame = CFrame.new(locVec)
+
+    task.wait()
+    humanoid:ChangeState(2)
+
+    getgenv().SwimMethod = false
+end
+
+local function generateDirtyMoney()
+
+    local tool = player.Backpack:FindFirstChild("Ice-Fruit Cupz")
+    if not tool then return end
+    if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+        player.Character.Humanoid:EquipTool(tool)
     end
-end
 
-local prompt = workspace:FindFirstChild("IceFruit Sell") and workspace["IceFruit Sell"]:FindFirstChildOfClass("ProximityPrompt")
-if prompt then
-    for i = 1, 8000 do
-        for j = 1, 50 do
-            fireproximityprompt(prompt, 1, true)
+
+    updateCharacterReferences()
+    if not humanoidRootPart then return end
+    local originalCFrame = humanoidRootPart.CFrame
+
+
+    local targetPos = Vector3.new(-67.85209655761719, 287.0635986328125, -320.7078857421875)
+    teleportToLocation(targetPos)
+
+
+    local camera = game.Workspace.CurrentCamera
+    local originalCameraType = camera.CameraType
+    local originalFieldOfView = camera.FieldOfView
+    local originalCameraShake = camera:FindFirstChild("CameraShake")
+    local cameraShakeBackup = originalCameraShake and originalCameraShake.Value or nil
+
+    local cameraOffset = Vector3.new(0, 5, 5)
+    local angleOffset = Vector3.new(0, -1, 0)
+
+    camera.CameraType = Enum.CameraType.Scriptable
+    getgenv().cameraFollowConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        if humanoidRootPart then
+            local characterPos = humanoidRootPart.Position
+            camera.CFrame = CFrame.new(characterPos + cameraOffset + angleOffset, characterPos + Vector3.new(0, 3, 0))
         end
-        task.wait(0.01)
+    end)
+
+
+    getgenv().instantPrompts = true
+    local iceFruitSellPrompt = workspace:WaitForChild("IceFruit Sell"):FindFirstChildOfClass("ProximityPrompt")
+    if iceFruitSellPrompt then
+        iceFruitSellPrompt.HoldDuration = 0
+        iceFruitSellPrompt.MaxActivationDistance = 6
+        getgenv().updateConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            if getgenv().instantPrompts and iceFruitSellPrompt.Enabled then
+                for _ = 1, 500 do
+                    iceFruitSellPrompt:InputHoldBegin()
+                    iceFruitSellPrompt:InputHoldEnd()
+                end
+            end
+        end)
     end
+
+    task.spawn(function()
+        task.wait(1)
+        getgenv().instantPrompts = false
+        if getgenv().updateConnection then
+            getgenv().updateConnection:Disconnect()
+            getgenv().updateConnection = nil
+        end
+        if iceFruitSellPrompt then
+            iceFruitSellPrompt.HoldDuration = 1
+            iceFruitSellPrompt.MaxActivationDistance = 4
+        end
+
+        teleportToLocation(originalCFrame.Position)
+        if getgenv().cameraFollowConnection then
+            getgenv().cameraFollowConnection:Disconnect()
+            getgenv().cameraFollowConnection = nil
+        end
+        camera.CameraType = originalCameraType
+        camera.FieldOfView = originalFieldOfView
+        if originalCameraShake then
+            originalCameraShake.Value = cameraShakeBackup
+        end
+    end)
 end
 
-task.wait(2)
-for _, part in pairs(character:GetDescendants()) do
-    if part:IsA("BasePart") then
-        part.Anchored = false
-    end
-end
 
--- Move character back to original position
-character:PivotTo(originalCF)
-getgenv().SwimMethod = true
-task.wait(1)
-getgenv().SwimMethod = false
-
--- Wait until the character is back at original location
-while (character:GetPivot().Position - originalCF.Position).Magnitude > 1 do
-    task.wait(0.1)
-end
-
--- Stop the text tween
-tween:Cancel()
-
--- Fade out overlay and text together
-for i = 1, 20 do
-    mainFrame.BackgroundTransparency = i / 20
-    statusText.TextTransparency = i / 20
-    task.wait(0.02)
-end
-overlay:Destroy()
-
--- Restore original prompt settings so nothing stays instant
-for prompt, settings in pairs(promptSettings) do
-    if prompt and prompt.Parent then
-        prompt.HoldDuration = settings.HoldDuration
-        prompt.RequiresLineOfSight = settings.RequiresLineOfSight
-    end
-end
+generateDirtyMoney()
